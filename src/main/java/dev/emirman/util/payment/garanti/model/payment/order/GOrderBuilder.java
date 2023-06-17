@@ -3,7 +3,7 @@ package dev.emirman.util.payment.garanti.model.payment.order;
 public final class GOrderBuilder {
     private String orderId;
     private String groupId;
-    private String amount;
+    private Double amount;
     private GOrderType type;
     private GOrderCurrency currency;
     private Integer installments;
@@ -26,7 +26,7 @@ public final class GOrderBuilder {
         return this;
     }
 
-    public GOrderBuilder withAmount(String amount) {
+    public GOrderBuilder withAmount(Double amount) {
         this.amount = amount;
         return this;
     }

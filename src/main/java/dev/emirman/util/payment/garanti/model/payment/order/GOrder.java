@@ -6,7 +6,7 @@ import java.text.DecimalFormat;
 public class GOrder {
     private String orderId;
     private String groupId;
-    private String amount;
+    private Double amount;
     private GOrderType type;
     private GOrderCurrency currency;
     private Integer installments;
@@ -15,7 +15,7 @@ public class GOrder {
     public GOrder() {
     }
 
-    public GOrder(String orderId, String groupId, String amount, GOrderType type, GOrderCurrency currency, Integer installments, String lang) {
+    public GOrder(String orderId, String groupId, Double amount, GOrderType type, GOrderCurrency currency, Integer installments, String lang) {
         this.orderId = orderId;
         this.groupId = groupId;
         this.amount = amount;
@@ -47,7 +47,7 @@ public class GOrder {
         return this;
     }
 
-    public GOrder withAmount(String amount) {
+    public GOrder withAmount(Double amount) {
         this.amount = amount;
         return this;
     }
@@ -81,7 +81,6 @@ public class GOrder {
     }
 
     public String amount() {
-        Double amount = Double.parseDouble(this.amount);
         DecimalFormat df = new DecimalFormat("#0.00");
         return df.format(amount).replace(".", "").replace(",", "");
     }

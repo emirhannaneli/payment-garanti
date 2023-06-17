@@ -42,7 +42,7 @@ public final class GStoreConfigBuilder {
     }
 
     public GStoreConfigBuilder withTerminalId(String terminalId) {
-        this.terminalId = 0 + terminalId;
+        this.terminalId = terminalId;
         return this;
     }
 
@@ -82,19 +82,6 @@ public final class GStoreConfigBuilder {
     }
 
     public GStoreConfig build() {
-        GStoreConfig gStoreConfig = new GStoreConfig();
-        gStoreConfig.withMode(mode);
-        gStoreConfig.withVersion(version);
-        gStoreConfig.withProvUserId(provUserId);
-        gStoreConfig.withProvUserPass(provUserPass);
-        gStoreConfig.withTerminalId(terminalId);
-        gStoreConfig.with_terminalId(_terminalId);
-        gStoreConfig.withMerchantId(merchantId);
-        gStoreConfig.withStoreKey(storeKey);
-        gStoreConfig.withSecure3DLevel(secure3DLevel);
-        gStoreConfig.withCompanyName(companyName);
-        gStoreConfig.withSuccessUrl(successUrl);
-        gStoreConfig.withFailUrl(failUrl);
-        return gStoreConfig;
+        return new GStoreConfig(mode, version, provUserId, provUserPass, terminalId, _terminalId, merchantId, storeKey, secure3DLevel, companyName, successUrl, failUrl);
     }
 }

@@ -29,7 +29,7 @@ public class IGPaymentService implements GPaymentService {
             .build();
 
     @Override
-    public String createRequest(GPayment gPayment) throws IOException, InterruptedException {
+    public String pay(GPayment gPayment) throws IOException, InterruptedException {
         GStoreConfig config = gPayment.config();
         String mode = config.mode();
         String version = config.version();
@@ -67,7 +67,6 @@ public class IGPaymentService implements GPaymentService {
         String securityData = sha1(provUserPass + _terminalId).toUpperCase();
 
         String hashData = sha1(terminalId + orderId + amount + successUrl + failUrl + type + installments + storeKey + securityData).toUpperCase();
-
 
         Map<String, String> params = new HashMap<>();
 

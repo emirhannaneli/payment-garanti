@@ -73,7 +73,7 @@ public class GStoreConfig {
     }
 
     public String terminalId() {
-        return 0 + terminalId;
+        return  terminalId;
     }
 
     public GStoreConfig withTerminalId(String terminalId) {
@@ -82,7 +82,7 @@ public class GStoreConfig {
     }
 
     public String _terminalId() {
-        return _terminalId;
+        return "0" + terminalId;
     }
 
     public GStoreConfig with_terminalId(String _terminalId) {
