@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'dev.emirman.util:payment-garanti:1.0.15'
+    implementation 'dev.emirman.util:payment-garanti:1.0.16'
 }
 ```
 
