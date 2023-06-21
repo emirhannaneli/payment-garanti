@@ -1,10 +1,12 @@
 package dev.emirman.util.payment.garanti.service.payment;
 
+import dev.emirman.util.payment.garanti.config.store.GStoreConfig;
+import dev.emirman.util.payment.garanti.exception.PaymentRequestSentFailed;
 import dev.emirman.util.payment.garanti.model.payment.base.GPayment;
 import dev.emirman.util.payment.garanti.model.payment.card.GCard;
-import dev.emirman.util.payment.garanti.model.payment.order.GOrder;
-import dev.emirman.util.payment.garanti.config.GStoreConfig;
 import dev.emirman.util.payment.garanti.model.payment.customer.GCustomer;
+import dev.emirman.util.payment.garanti.model.payment.order.base.GOrder;
+import dev.emirman.util.payment.garanti.service.installment.InstallmentService;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.IOException;
@@ -13,23 +15,27 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
 public class IGPaymentService implements GPaymentService {
     private static final String GARANTI_3D_PAYMENT_URL = "https://sanalposprov.garanti.com.tr/servlet/gt3dengine";
-    //private static final String GARANTI_XML_PAYMENT_URL = "https://sanalposprov.garanti.com.tr/VPServlet";
-
     private static final String GARANTI_3D_PAYMENT_TEST_URL = "https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine";
-
-    //private static final String GARANTI_XML_PAYMENT_TEST_URL = "https://sanalposprovtest.garantibbva.com.tr/VPServlet";
-
-    private static final HttpClient httpClient = HttpClient.newBuilder()
+    private static final HttpClient client = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_2)
             .build();
+    private InstallmentService installmentService;
+
+    public IGPaymentService() {
+    }
+
+    public IGPaymentService(InstallmentService installmentService) {
+        this.installmentService = installmentService;
+    }
 
     @Override
-    public String pay(GPayment gPayment) throws IOException, InterruptedException {
+    public String pay(GPayment gPayment) {
         GStoreConfig config = gPayment.config();
         String mode = config.mode();
         String version = config.version();
@@ -44,14 +50,23 @@ public class IGPaymentService implements GPaymentService {
         String successUrl = config.successUrl();
         String failUrl = config.failUrl();
 
+
         GOrder order = gPayment.order();
         String orderId = order.orderId();
         String groupId = order.groupId();
-        String amount = order.amount();
         String currency = order.currency().getCode();
         String type = order.type().getValue();
-        String installments = order.installments();
         String lang = order.lang();
+
+        String installments = installmentService == null ? "0" : order.installments();
+
+        DecimalFormat df = new DecimalFormat("#0.00");
+        String amount = installmentService == null
+                ? df.format(order.amount())
+                : installments != null && !installments.isBlank() && Integer.parseInt(installments) > 1
+                ? df.format(installmentService.calculate(order.amount(), Integer.parseInt(installments)))
+                : df.format(order.amount());
+        amount = amount.replace(".", "");
 
         GCustomer customer = gPayment.customer();
         String email = customer.email();
@@ -64,9 +79,9 @@ public class IGPaymentService implements GPaymentService {
         String cardExpireYear = card.expireYear();
         String cardCvc = card.cvc();
 
-        String securityData = sha1(provUserPass + _terminalId).toUpperCase();
+        String securityData = sha1(provUserPass + _terminalId);
 
-        String hashData = sha1(terminalId + orderId + amount + successUrl + failUrl + type + installments + storeKey + securityData).toUpperCase();
+        String hashData = sha1(terminalId + orderId + amount + successUrl + failUrl + type + installments + storeKey + securityData);
 
         Map<String, String> params = new HashMap<>();
 
@@ -99,31 +114,35 @@ public class IGPaymentService implements GPaymentService {
         params.put("txntimestamp", String.valueOf(System.currentTimeMillis()));
         params.put("txntimeoutperiod", "60");
         params.put("addcampaigninstallment", "N");
-        params.put("totallinstallmentcount", "0");
+        params.put("totallinstallmentcount", installments);
         params.put("installmentonlyforcommercialcard", "N");
         params.put("secure3dhash", hashData);
 
+        try {
+            return sendRequest(params, mode).body();
+        } catch (IOException | InterruptedException e) {
+            throw new PaymentRequestSentFailed(e);
+        }
+    }
+
+    private String sha1(String data) {
+        return DigestUtils.sha1Hex(data).toUpperCase();
+    }
+
+    private HttpResponse<String> sendRequest(Map<String, String> params, String mode) throws IOException, InterruptedException {
         String data = params.entrySet().stream()
                 .filter(e -> e.getValue() != null && !e.getValue().isEmpty())
                 .map(e -> e.getKey() + "=" + e.getValue())
                 .reduce((a, b) -> a + "&" + b)
                 .orElse("");
 
-        URI uri = URI.create(mode.equals("PROD") ? GARANTI_3D_PAYMENT_URL : GARANTI_3D_PAYMENT_TEST_URL);
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(uri)
+        final HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(mode.equals("PROD") ? GARANTI_3D_PAYMENT_URL : GARANTI_3D_PAYMENT_TEST_URL))
+                .POST(HttpRequest.BodyPublishers.ofString(data))
                 .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
                 .header("Accept", "text/html")
-                .POST(HttpRequest.BodyPublishers.ofString(data))
                 .build();
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-        return response.body();
-    }
-
-    private String sha1(String data) {
-        return DigestUtils.sha1Hex(data);
+        return client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
     }
 }

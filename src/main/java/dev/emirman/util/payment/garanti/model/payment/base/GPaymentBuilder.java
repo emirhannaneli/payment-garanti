@@ -1,9 +1,9 @@
 package dev.emirman.util.payment.garanti.model.payment.base;
 
 import dev.emirman.util.payment.garanti.model.payment.card.GCard;
-import dev.emirman.util.payment.garanti.config.GStoreConfig;
+import dev.emirman.util.payment.garanti.config.store.GStoreConfig;
 import dev.emirman.util.payment.garanti.model.payment.customer.GCustomer;
-import dev.emirman.util.payment.garanti.model.payment.order.GOrder;
+import dev.emirman.util.payment.garanti.model.payment.order.base.GOrder;
 
 public final class GPaymentBuilder {
     private GStoreConfig config;

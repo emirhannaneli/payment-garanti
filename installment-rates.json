@@ -1,0 +1,28 @@
+{
+  "installments": [
+    {
+      "installment": "2",
+      "rate": "1.980"
+    },
+    {
+      "installment": "3",
+      "rate": "2.650"
+    },
+    {
+      "installment": "4",
+      "rate": "3.310"
+    },
+    {
+      "installment": "5",
+      "rate": "3.970"
+    },
+    {
+      "installment": "6",
+      "rate": "4.630"
+    },
+    {
+      "installment": "12",
+      "rate": "8.600"
+    }
+  ]
+}
