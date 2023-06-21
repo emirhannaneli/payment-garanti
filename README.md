@@ -76,7 +76,7 @@ public ReadPaymentDTO createPayment() {
                 .withCard(card)
                 .build();
                 
-        String htmlContent = service.createRequest(payment);
+        String htmlContent = service.pay(payment);
         String encodedHtmlContent = Base64.getEncoder().encodeToString(htmlContent.getBytes());
         ReadOrderDTO dto = mapper.map(savedOrder, ReadOrderDTO.class); // here i am using modelmapper.
         return ReadPaymentDTO.builder()
